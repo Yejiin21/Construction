@@ -1,4 +1,27 @@
-// TODO: Step 7에서 구현 — 공종 선택 시 표시, 클릭 시 오버레이 모드 진입
+import { useDrawingStore } from '../../store/drawingStore';
+import { useMetadata } from '../../hooks/useMetadata';
+
 export function CompareButton() {
-  return null;
+  const { selectedDrawingId, selectedDiscipline, isOverlayMode, enterOverlayMode } = useDrawingStore();
+  const { state } = useMetadata();
+
+  if (isOverlayMode || !selectedDiscipline || state.status !== 'success') return null;
+
+  const drawing = state.data.drawings[selectedDrawingId];
+  const disciplines = drawing?.disciplines ?? {};
+
+  // imageTransform이 있고, image 또는 revisions가 있는 공종 (기준 공종 제외)
+  const hasOverlayable = Object.entries(disciplines).some(
+    ([name, d]) => name !== selectedDiscipline && d.imageTransform && (d.image || (d.revisions?.length ?? 0) > 0)
+  );
+  if (!hasOverlayable) return null;
+
+  return (
+    <button
+      onClick={enterOverlayMode}
+      className="shrink-0 px-3 py-1 bg-sky-100 border border-sky-200 rounded text-xs font-medium text-sky-700 hover:bg-sky-200 transition-colors"
+    >
+      공종 비교
+    </button>
+  );
 }
