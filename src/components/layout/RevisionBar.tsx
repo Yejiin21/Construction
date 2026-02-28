@@ -1,5 +1,5 @@
-import { useDrawingStore } from '../../store/drawingStore';
-import { RevisionTimeline } from './RevisionTimeline';
+import { useDrawingStore } from "../../store/drawingStore";
+import { RevisionTimeline } from "./RevisionTimeline";
 
 export function RevisionBar() {
   const { selectedDiscipline } = useDrawingStore();
@@ -8,7 +8,7 @@ export function RevisionBar() {
   if (!selectedDiscipline) return null;
 
   return (
-    <div className="h-16 border-t bg-white px-4 flex items-center gap-3 shrink-0">
+    <div className="border-t bg-white px-4 py-3 flex items-center gap-3 shrink-0">
       <span className="text-xs text-gray-500 shrink-0">리비전 이력</span>
       <RevisionTimeline />
     </div>
