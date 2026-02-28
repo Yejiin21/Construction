@@ -16,7 +16,7 @@ export function Breadcrumb() {
   if (selectedRevision) parts.push(selectedRevision);
 
   return (
-    <div className="px-4 py-2 text-xs text-gray-500 border-b bg-white flex items-center gap-1 shrink-0">
+    <div className="flex-1 text-xs text-gray-500 flex items-center gap-1">
       {parts.map((part, i) => (
         <span key={i} className="flex items-center gap-1">
           {i > 0 && <span className="text-gray-300 mx-0.5">›</span>}
