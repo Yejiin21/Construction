@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useDrawingStore } from '../../store/drawingStore';
 import { useMetadata } from '../../hooks/useMetadata';
-import { PolygonOverlay } from './PolygonOverlay';
+import { ImageOverlay } from './ImageOverlay';
 import { resolveCurrentView } from '../../utils/resolveCurrentView';
 
 export function DrawingCanvas() {
@@ -9,10 +9,17 @@ export function DrawingCanvas() {
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
   const [containerSize, setContainerSize] = useState<{ w: number; h: number } | null>(null);
 
-  const { selectedDrawingId, selectedDiscipline, selectedRegion, selectedRevision } = useDrawingStore();
+  const {
+    selectedDrawingId,
+    selectedDiscipline,
+    selectedRegion,
+    selectedRevision,
+    isOverlayMode,
+    baseOpacity,
+  } = useDrawingStore();
   const { state } = useMetadata();
 
-  // 컨테이너 크기 추적 — ResizeObserver로 리사이즈 시에도 정확한 크기 유지
+  // 컨테이너 크기 추적
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -24,12 +31,13 @@ export function DrawingCanvas() {
     return () => observer.disconnect();
   }, []);
 
-  // object-contain 렌더 영역 계산 (이미지 실제 위치 + 크기)
+  // object-contain 렌더 영역 계산
   let imageRect: { left: number; top: number; width: number; height: number } | null = null;
+  let renderScale = 1;
   if (naturalSize && containerSize) {
-    const scale = Math.min(containerSize.w / naturalSize.w, containerSize.h / naturalSize.h);
-    const w = naturalSize.w * scale;
-    const h = naturalSize.h * scale;
+    renderScale = Math.min(containerSize.w / naturalSize.w, containerSize.h / naturalSize.h);
+    const w = naturalSize.w * renderScale;
+    const h = naturalSize.h * renderScale;
     imageRect = {
       left: (containerSize.w - w) / 2,
       top: (containerSize.h - h) / 2,
@@ -56,22 +64,24 @@ export function DrawingCanvas() {
     const { data } = state;
     const drawing = data.drawings[selectedDrawingId];
     const discipline = drawing?.disciplines?.[selectedDiscipline ?? ''];
-    const { imageUrl, polygon } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
+    const { imageUrl } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
 
     content = (
       <>
+        {/* 기준 도면 이미지 */}
         <img
           key={imageUrl}
           src={imageUrl}
           alt="도면"
           className="w-full h-full object-contain"
+          style={isOverlayMode ? { opacity: baseOpacity / 100 } : undefined}
           onLoad={(e) => {
             const img = e.currentTarget;
             setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
           }}
         />
-        {/* 폴리곤 오버레이: 이미지 실제 렌더 영역에만 정확히 겹침 */}
-        {polygon && imageRect && naturalSize && (
+        {/* 공종 이미지 오버레이 (비교 모드) */}
+        {isOverlayMode && imageRect && naturalSize && (
           <div
             className="pointer-events-none"
             style={{
@@ -82,11 +92,7 @@ export function DrawingCanvas() {
               height: imageRect.height,
             }}
           >
-            <PolygonOverlay
-              polygon={polygon}
-              naturalWidth={naturalSize.w}
-              naturalHeight={naturalSize.h}
-            />
+            <ImageOverlay renderScale={renderScale} />
           </div>
         )}
       </>
