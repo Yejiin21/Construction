@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git init)",
-      "Bash(git remote add origin https://github.com/Yejiin21/Construction.git)"
+      "Bash(git remote add origin https://github.com/Yejiin21/Construction.git)",
+      "Bash(npm install zustand)",
+      "Bash(curl -s http://localhost:5173/data/metadata.json)",
+      "Bash(kill %1)"
     ]
   }
 }
