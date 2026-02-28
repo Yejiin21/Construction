@@ -5,7 +5,9 @@
       "Bash(git remote add origin https://github.com/Yejiin21/Construction.git)",
       "Bash(npm install zustand)",
       "Bash(curl -s http://localhost:5173/data/metadata.json)",
-      "Bash(kill %1)"
+      "Bash(kill %1)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm install axios)"
     ]
   }
 }
