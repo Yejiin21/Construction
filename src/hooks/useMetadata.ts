@@ -24,7 +24,7 @@ function buildChildrenMap(data: Metadata): Record<string, Drawing[]> {
 // - region이 있는 경우: 각 region별 마지막 revision 반환
 function getLatestRevision(
   discipline: Discipline
-): Revision | Record<string, Revision> {
+): Revision | Record<string, Revision> | undefined {
   if (discipline.regions) {
     return Object.fromEntries(
       Object.entries(discipline.regions).map(([key, region]) => [
@@ -33,13 +33,13 @@ function getLatestRevision(
       ])
     );
   }
-  return discipline.revisions[discipline.revisions.length - 1];
+  return discipline.revisions?.at(-1);
 }
 
 // 해당 공종의 최신 리비전에 변경 내역이 있는지 판별
 // BuildingTree에서 공종 아이템 렌더링 시 "변경 있음" 표시에 사용
 function hasRecentChange(discipline: Discipline): boolean {
-  const latestRevision = discipline.revisions.at(-1);
+  const latestRevision = discipline.revisions?.at(-1);
   return (latestRevision?.changes.length ?? 0) > 0;
 }
 

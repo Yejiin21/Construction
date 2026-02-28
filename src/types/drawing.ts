@@ -48,7 +48,7 @@ export interface Discipline {
   image?: string; // 공종 자체 도면 이미지 (region이 있는 경우)
   polygon?: Polygon; // 이 공종이 다루는 관심 영역
   regions?: Record<string, Region>; // 하위 영역 분할 (구조 공종 A/B 등)
-  revisions: Revision[]; // 리비전 이력 배열
+  revisions?: Revision[]; // 리비전 이력 배열 (region이 있는 공종은 discipline 레벨에 없을 수 있음)
 }
 
 export interface Position {
