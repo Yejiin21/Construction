@@ -5,6 +5,19 @@ interface ViewResult {
   polygon: Polygon | undefined;
 }
 
+/**
+ * 도면의 기준 이미지(drawing.image)에 대응하는 base 공종명을 반환.
+ * metadata 규칙: 다른 이미지들이 relativeTo로 이 base 이미지를 가리키며,
+ * 파일명은 ..._<공종명>.(png|jpeg|jpg) 형태.
+ */
+export function getBaseDisciplineForDrawing(drawing: Drawing): string | null {
+  if (!drawing?.disciplines || !drawing.image) return null;
+  const match = drawing.image.match(/_([^_.]+)\.(png|jpe?g)$/i);
+  if (!match) return null;
+  const name = match[1];
+  return drawing.disciplines[name] ? name : null;
+}
+
 export function resolveCurrentView(
   drawing: Drawing | undefined,
   discipline: Discipline | undefined,

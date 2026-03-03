@@ -94,7 +94,14 @@ export function OverlayControlBar() {
         const active = isActive(opt);
         const overlay = getOverlay(opt);
         return (
-          <div key={opt.region ? `${opt.disciplineName}-${opt.region}` : opt.disciplineName} className="flex items-center gap-1.5 flex-wrap">
+          <div
+            key={
+              opt.region
+                ? `${opt.disciplineName}-${opt.region}`
+                : opt.disciplineName
+            }
+            className="flex items-center gap-1.5 flex-wrap"
+          >
             <button
               onClick={() =>
                 active

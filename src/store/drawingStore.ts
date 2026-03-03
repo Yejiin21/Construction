@@ -64,11 +64,18 @@ export const useDrawingStore = create<DrawingState>((set) => ({
       baseOpacity: 100,
     }),
 
+  // 공종 비교 중 다른 공종 선택 시 자동 비교 종료 → 해당 공종만 표시
   selectDiscipline: (discipline) =>
-    set({
-      selectedDiscipline: discipline,
-      selectedRegion: null,
-      selectedRevision: null,
+    set((s) => {
+      const exitOverlay = s.isOverlayMode
+        ? { isOverlayMode: false as const, overlayDisciplines: [] as OverlayDiscipline[], baseOpacity: 100 }
+        : {};
+      return {
+        selectedDiscipline: discipline,
+        selectedRegion: null,
+        selectedRevision: null,
+        ...exitOverlay,
+      };
     }),
 
   selectRegion: (region) =>

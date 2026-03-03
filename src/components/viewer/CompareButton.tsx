@@ -1,5 +1,6 @@
 import { useDrawingStore } from '../../store/drawingStore';
 import { useMetadata } from '../../hooks/useMetadata';
+import { getBaseDisciplineForDrawing } from '../../utils/resolveCurrentView';
 
 export function CompareButton() {
   const { selectedDrawingId, selectedDiscipline, isOverlayMode, enterOverlayMode } = useDrawingStore();
@@ -8,7 +9,12 @@ export function CompareButton() {
   if (isOverlayMode || !selectedDiscipline || state.status !== 'success') return null;
 
   const drawing = state.data.drawings[selectedDrawingId];
-  const disciplines = drawing?.disciplines ?? {};
+  if (!drawing?.disciplines) return null;
+
+  const baseDiscipline = getBaseDisciplineForDrawing(drawing);
+  if (selectedDiscipline !== baseDiscipline) return null;
+
+  const disciplines = drawing.disciplines;
 
   // imageTransform이 있고, image 또는 revisions가 있는 공종 (기준 공종 제외)
   const hasOverlayable = Object.entries(disciplines).some(
