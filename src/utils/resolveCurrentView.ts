@@ -11,11 +11,23 @@ interface ViewResult {
  * 파일명은 ..._<공종명>.(png|jpeg|jpg) 형태.
  */
 export function getBaseDisciplineForDrawing(drawing: Drawing): string | null {
-  if (!drawing?.disciplines || !drawing.image) return null;
-  const match = drawing.image.match(/_([^_.]+)\.(png|jpe?g)$/i);
-  if (!match) return null;
-  const name = match[1];
-  return drawing.disciplines[name] ? name : null;
+  if (!drawing?.disciplines) return null;
+
+  // 다른 공종들의 imageTransform.relativeTo가 가리키는 이미지 집합
+  const referencedImages = new Set(
+    Object.values(drawing.disciplines)
+      .map((d) => d.imageTransform?.relativeTo)
+      .filter((v): v is string => v != null),
+  );
+
+  if (referencedImages.size === 0) return null;
+
+  // base 공종: 자신의 image가 다른 공종들의 relativeTo에 참조되는 공종
+  return (
+    Object.entries(drawing.disciplines).find(
+      ([, d]) => d.image != null && referencedImages.has(d.image),
+    )?.[0] ?? null
+  );
 }
 
 export function resolveCurrentView(
