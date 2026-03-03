@@ -1,10 +1,19 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-// 오버레이 공종별 독립 설정 (단순 string[] 대신 — revision·opacity를 공종마다 따로 제어)
+// 오버레이 공종별 독립 설정 (region 있으면 Region A/B 구분, calibration으로 회전/축소/확대 조정)
+export interface OverlayCalibration {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
+
 interface OverlayDiscipline {
   disciplineName: string; // '구조', '설비' 등
-  revision: string;       // 선택된 revision version
-  opacity: number;        // 0~100
+  revision: string; // 선택된 revision version
+  opacity: number; // 0~100
+  region?: string; // region 있는 공종(구조)일 때 'A' | 'B'
+  calibration?: OverlayCalibration; // region 오버레이만: 메타데이터 transform에 더할 delta
 }
 
 interface DrawingState {
@@ -12,9 +21,9 @@ interface DrawingState {
   selectedDiscipline: string | null;
   selectedRegion: string | null;
   selectedRevision: string | null;
-  isOverlayMode: boolean;                  // '비교하기' 버튼으로 진입
+  isOverlayMode: boolean; // '비교하기' 버튼으로 진입
   overlayDisciplines: OverlayDiscipline[]; // 공종별 독립 설정
-  baseOpacity: number;                     // base 공종 투명도 (0~100)
+  baseOpacity: number; // base 공종 투명도 (0~100)
 
   selectDrawing: (id: string) => void;
   selectDiscipline: (discipline: string | null) => void;
@@ -22,15 +31,20 @@ interface DrawingState {
   selectRevision: (version: string | null) => void;
   enterOverlayMode: () => void;
   exitOverlayMode: () => void;
-  addOverlay: (disciplineName: string, revision: string) => void;
-  removeOverlay: (disciplineName: string) => void;
-  updateOverlayOpacity: (disciplineName: string, opacity: number) => void;
-  updateOverlayRevision: (disciplineName: string, revision: string) => void;
+  addOverlay: (disciplineName: string, revision: string, region?: string) => void;
+  removeOverlay: (disciplineName: string, region?: string) => void;
+  updateOverlayOpacity: (disciplineName: string, opacity: number, region?: string) => void;
+  updateOverlayRevision: (disciplineName: string, revision: string, region?: string) => void;
+  updateOverlayCalibration: (
+    disciplineName: string,
+    region: string,
+    calibration: Partial<OverlayCalibration>,
+  ) => void;
   setBaseOpacity: (opacity: number) => void;
 }
 
 export const useDrawingStore = create<DrawingState>((set) => ({
-  selectedDrawingId: '00',
+  selectedDrawingId: "00",
   selectedDiscipline: null,
   selectedRegion: null,
   selectedRevision: null,
@@ -51,13 +65,16 @@ export const useDrawingStore = create<DrawingState>((set) => ({
     }),
 
   selectDiscipline: (discipline) =>
-    set({ selectedDiscipline: discipline, selectedRegion: null, selectedRevision: null }),
+    set({
+      selectedDiscipline: discipline,
+      selectedRegion: null,
+      selectedRevision: null,
+    }),
 
   selectRegion: (region) =>
     set({ selectedRegion: region, selectedRevision: null }),
 
-  selectRevision: (version) =>
-    set({ selectedRevision: version }),
+  selectRevision: (version) => set({ selectedRevision: version }),
 
   enterOverlayMode: () => set({ isOverlayMode: true }),
 
@@ -65,32 +82,64 @@ export const useDrawingStore = create<DrawingState>((set) => ({
   exitOverlayMode: () =>
     set({ isOverlayMode: false, overlayDisciplines: [], baseOpacity: 100 }),
 
-  // 오버레이 추가 시 기본 opacity 70, 최신 revision은 호출부에서 전달
-  addOverlay: (disciplineName, revision) =>
-    set((s) => ({
-      overlayDisciplines: s.overlayDisciplines.some((o) => o.disciplineName === disciplineName)
-        ? s.overlayDisciplines
-        : [...s.overlayDisciplines, { disciplineName, revision, opacity: 70 }],
-    })),
+  // 오버레이 추가 시 기본 opacity 70, 최신 revision·region은 호출부에서 전달
+  addOverlay: (disciplineName, revision, region) =>
+    set((s) => {
+      const exists = s.overlayDisciplines.some(
+        (o) =>
+          o.disciplineName === disciplineName &&
+          (o.region ?? '') === (region ?? ''),
+      );
+      if (exists) return s;
+      return {
+        overlayDisciplines: [
+          ...s.overlayDisciplines,
+          { disciplineName, revision, opacity: 70, region },
+        ],
+      };
+    }),
 
-  removeOverlay: (disciplineName) =>
+  removeOverlay: (disciplineName, region) =>
     set((s) => ({
-      overlayDisciplines: s.overlayDisciplines.filter((o) => o.disciplineName !== disciplineName),
-    })),
-
-  updateOverlayOpacity: (disciplineName, opacity) =>
-    set((s) => ({
-      overlayDisciplines: s.overlayDisciplines.map((o) =>
-        o.disciplineName === disciplineName
-          ? { ...o, opacity: Math.max(0, Math.min(100, opacity)) }
-          : o
+      overlayDisciplines: s.overlayDisciplines.filter(
+        (o) =>
+          !(o.disciplineName === disciplineName && (o.region ?? '') === (region ?? '')),
       ),
     })),
 
-  updateOverlayRevision: (disciplineName, revision) =>
+  updateOverlayOpacity: (disciplineName, opacity, region?) =>
     set((s) => ({
       overlayDisciplines: s.overlayDisciplines.map((o) =>
-        o.disciplineName === disciplineName ? { ...o, revision } : o
+        o.disciplineName === disciplineName && (region == null || o.region === region)
+          ? { ...o, opacity: Math.max(0, Math.min(100, opacity)) }
+          : o,
+      ),
+    })),
+
+  updateOverlayRevision: (disciplineName, revision, region?) =>
+    set((s) => ({
+      overlayDisciplines: s.overlayDisciplines.map((o) =>
+        o.disciplineName === disciplineName && (region == null || o.region === region)
+          ? { ...o, revision }
+          : o,
+      ),
+    })),
+
+  updateOverlayCalibration: (disciplineName, region, calibration) =>
+    set((s) => ({
+      overlayDisciplines: s.overlayDisciplines.map((o) =>
+        o.disciplineName === disciplineName && o.region === region
+          ? {
+              ...o,
+              calibration: {
+                x: o.calibration?.x ?? 0,
+                y: o.calibration?.y ?? 0,
+                scale: o.calibration?.scale ?? 1,
+                rotation: o.calibration?.rotation ?? 0,
+                ...calibration,
+              },
+            }
+          : o,
       ),
     })),
 

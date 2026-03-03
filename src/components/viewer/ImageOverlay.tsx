@@ -14,9 +14,13 @@ export function ImageOverlay({ renderScale }: Props) {
   const drawing = state.data.drawings[selectedDrawingId];
   if (!drawing) return null;
 
+  // region 있는 공종(구조 Region A/B)은 RegionOverlay에서 처리
+  const nonRegionOverlays = overlayDisciplines.filter((o) => o.region == null);
+  if (nonRegionOverlays.length === 0) return null;
+
   return (
     <>
-      {overlayDisciplines.map(({ disciplineName, revision, opacity }) => {
+      {nonRegionOverlays.map(({ disciplineName, revision, opacity }) => {
         const discipline = drawing.disciplines?.[disciplineName];
         if (!discipline?.imageTransform) return null;
 

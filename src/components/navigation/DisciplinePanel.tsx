@@ -32,7 +32,7 @@ export function DisciplinePanel() {
       const latestRev = discipline.regions[firstRegion].revisions.at(-1);
       if (latestRev) selectRevision(latestRev.version);
     } else {
-      const latestRev = discipline.revisions.at(-1);
+      const latestRev = discipline.revisions?.at(-1);
       if (latestRev) selectRevision(latestRev.version);
     }
   }

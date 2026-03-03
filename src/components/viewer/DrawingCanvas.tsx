@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useDrawingStore } from '../../store/drawingStore';
 import { useMetadata } from '../../hooks/useMetadata';
 import { ImageOverlay } from './ImageOverlay';
+import { RegionOverlay } from './RegionOverlay';
 import { resolveCurrentView } from '../../utils/resolveCurrentView';
 
 export function DrawingCanvas() {
@@ -80,20 +81,36 @@ export function DrawingCanvas() {
             setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
           }}
         />
-        {/* 공종 이미지 오버레이 (비교 모드) */}
+        {/* 공종 이미지 오버레이 (비교 모드) — 시각만, 클릭은 통과 */}
         {isOverlayMode && imageRect && naturalSize && (
-          <div
-            className="pointer-events-none"
-            style={{
-              position: 'absolute',
-              left: imageRect.left,
-              top: imageRect.top,
-              width: imageRect.width,
-              height: imageRect.height,
-            }}
-          >
-            <ImageOverlay renderScale={renderScale} />
-          </div>
+          <>
+            <div
+              className="pointer-events-none"
+              style={{
+                position: 'absolute',
+                left: imageRect.left,
+                top: imageRect.top,
+                width: imageRect.width,
+                height: imageRect.height,
+              }}
+            >
+              <ImageOverlay renderScale={renderScale} />
+              <RegionOverlay renderScale={renderScale} mode="visual" />
+            </div>
+            {/* Region 드래그 핸들 전용 레이어 — 여기만 클릭/드래그 가능 */}
+            <div
+              className="pointer-events-auto"
+              style={{
+                position: 'absolute',
+                left: imageRect.left,
+                top: imageRect.top,
+                width: imageRect.width,
+                height: imageRect.height,
+              }}
+            >
+              <RegionOverlay renderScale={renderScale} mode="drag" />
+            </div>
+          </>
         )}
       </>
     );
