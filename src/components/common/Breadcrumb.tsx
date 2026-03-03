@@ -18,7 +18,7 @@ export function Breadcrumb() {
   return (
     <div className="flex-1 text-xs text-gray-500 flex items-center gap-1">
       {parts.map((part, i) => (
-        <span key={i} className="flex items-center gap-1">
+        <span key={`${i}-${part}`} className="flex items-center gap-1">
           {i > 0 && <span className="text-gray-300 mx-0.5">›</span>}
           <span className={i === parts.length - 1 ? 'text-gray-700 font-medium' : ''}>
             {part}
