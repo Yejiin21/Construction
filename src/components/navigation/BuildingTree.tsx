@@ -12,7 +12,7 @@ export function BuildingTree() {
     selectRegion,
     selectRevision,
   } = useDrawingStore();
-  const { state, childrenMap } = useMetadata();
+  const { state, childrenMap, getLatestRevision, hasRecentChange } = useMetadata();
 
   // 펼쳐진 동 — 로컬 UI 상태 (한 번에 하나만)
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -37,22 +37,28 @@ export function BuildingTree() {
     const discipline = data.drawings[drawingId]?.disciplines?.[disciplineName];
     if (!discipline) return;
 
+    const latest = getLatestRevision(discipline);
     if (discipline.regions) {
       const firstRegion = Object.keys(discipline.regions)[0];
       selectRegion(firstRegion);
-      const latestRev = discipline.regions[firstRegion].revisions?.at(-1);
-      if (latestRev) selectRevision(latestRev.version);
-    } else {
-      const latestRev = discipline.revisions?.at(-1);
-      if (latestRev) selectRevision(latestRev.version);
+      if (latest && typeof latest === 'object' && !('version' in latest)) {
+        const rev = (latest as Record<string, { version: string }>)[firstRegion];
+        if (rev) selectRevision(rev.version);
+      }
+    } else if (latest && 'version' in latest) {
+      selectRevision((latest as { version: string }).version);
     }
   }
 
   function handleRegionSelect(region: string, disciplineName: string, drawingId: string) {
     selectDiscipline(disciplineName);
     selectRegion(region);
-    const latestRev = data.drawings[drawingId]?.disciplines?.[disciplineName]?.regions?.[region]?.revisions.at(-1);
-    if (latestRev) selectRevision(latestRev.version);
+    const discipline = data.drawings[drawingId]?.disciplines?.[disciplineName];
+    const latest = discipline ? getLatestRevision(discipline) : undefined;
+    if (latest && typeof latest === 'object' && !('version' in latest)) {
+      const rev = (latest as Record<string, { version: string }>)[region];
+      if (rev) selectRevision(rev.version);
+    }
   }
 
   return (
@@ -95,8 +101,7 @@ export function BuildingTree() {
 
             {/* 공종 목록 — 2단계 */}
             {isExpanded && Object.entries(disciplines).map(([disciplineName, discipline]) => {
-              const latestRev = discipline.revisions?.at(-1);
-              const hasChange = (latestRev?.changes.length ?? 0) > 0;
+              const hasChange = hasRecentChange(discipline);
               const hasRegions = !!discipline.regions;
               const isDisciplineSelected = isSelected && selectedDiscipline === disciplineName;
 
