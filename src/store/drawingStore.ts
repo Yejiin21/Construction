@@ -34,7 +34,6 @@ interface DrawingState {
   addOverlay: (disciplineName: string, revision: string, region?: string) => void;
   removeOverlay: (disciplineName: string, region?: string) => void;
   updateOverlayOpacity: (disciplineName: string, opacity: number, region?: string) => void;
-  updateOverlayRevision: (disciplineName: string, revision: string, region?: string) => void;
   updateOverlayCalibration: (
     disciplineName: string,
     region: string,
@@ -119,15 +118,6 @@ export const useDrawingStore = create<DrawingState>((set) => ({
       overlayDisciplines: s.overlayDisciplines.map((o) =>
         o.disciplineName === disciplineName && (region == null || o.region === region)
           ? { ...o, opacity: Math.max(0, Math.min(100, opacity)) }
-          : o,
-      ),
-    })),
-
-  updateOverlayRevision: (disciplineName, revision, region?) =>
-    set((s) => ({
-      overlayDisciplines: s.overlayDisciplines.map((o) =>
-        o.disciplineName === disciplineName && (region == null || o.region === region)
-          ? { ...o, revision }
           : o,
       ),
     })),
