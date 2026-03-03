@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useDrawingStore } from '../../store/drawingStore';
 import { useMetadata } from '../../hooks/useMetadata';
 import { ImageOverlay } from './ImageOverlay';
+import { PolygonOverlay } from './PolygonOverlay';
 import { RegionOverlay } from './RegionOverlay';
 import { resolveCurrentView } from '../../utils/resolveCurrentView';
 
@@ -65,7 +66,7 @@ export function DrawingCanvas() {
     const { data } = state;
     const drawing = data.drawings[selectedDrawingId];
     const discipline = drawing?.disciplines?.[selectedDiscipline ?? ''];
-    const { imageUrl } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
+    const { imageUrl, polygon } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
 
     content = (
       <>
@@ -81,6 +82,25 @@ export function DrawingCanvas() {
             setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
           }}
         />
+        {/* 공종/리비전 관심 영역 폴리곤 (polygon 있을 때만) */}
+        {imageRect && polygon && naturalSize && (
+          <div
+            className="pointer-events-none"
+            style={{
+              position: 'absolute',
+              left: imageRect.left,
+              top: imageRect.top,
+              width: imageRect.width,
+              height: imageRect.height,
+            }}
+          >
+            <PolygonOverlay
+              polygon={polygon}
+              naturalWidth={naturalSize.w}
+              naturalHeight={naturalSize.h}
+            />
+          </div>
+        )}
         {/* 공종 이미지 오버레이 (비교 모드) — 시각만, 클릭은 통과 */}
         {isOverlayMode && imageRect && naturalSize && (
           <>
