@@ -1,11 +1,14 @@
 # 프로젝트명: construction
 
+## Github 저장소
+
+- https://github.com/Yejiin21/Construction.git
+
 ## 실행 방법
 
-```bash
-npm install
-npm run dev
-```
+1. 저장소 클론 또는 압축 해제
+2. `npm install`
+3. `npm run dev`
 
 ## 기술 스택
 
