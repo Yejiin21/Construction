@@ -19,7 +19,7 @@ export function DrawingCanvas() {
     isOverlayMode,
     baseOpacity,
   } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
   // 컨테이너 크기 추적
   useEffect(() => {
@@ -48,42 +48,46 @@ export function DrawingCanvas() {
     };
   }
 
-  let content: React.ReactNode;
+  const drawing = data.drawings[selectedDrawingId];
+  const discipline = drawing?.disciplines?.[selectedDiscipline ?? ''];
+  const { imageUrl, polygon } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
 
-  if (state.status === 'loading') {
-    content = (
-      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-        불러오는 중...
-      </div>
-    );
-  } else if (state.status === 'error') {
-    content = (
-      <div className="flex items-center justify-center h-full text-red-400 text-sm">
-        데이터 오류
-      </div>
-    );
-  } else {
-    const { data } = state;
-    const drawing = data.drawings[selectedDrawingId];
-    const discipline = drawing?.disciplines?.[selectedDiscipline ?? ''];
-    const { imageUrl, polygon } = resolveCurrentView(drawing, discipline, selectedRegion, selectedRevision);
-
-    content = (
-      <>
-        {/* 기준 도면 이미지 */}
-        <img
-          key={imageUrl}
-          src={imageUrl}
-          alt="도면"
-          className="w-full h-full object-contain"
-          style={isOverlayMode ? { opacity: baseOpacity / 100 } : undefined}
-          onLoad={(e) => {
-            const img = e.currentTarget;
-            setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+  return (
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-gray-100">
+      {/* 기준 도면 이미지 */}
+      <img
+        key={imageUrl}
+        src={imageUrl}
+        alt="도면"
+        className="w-full h-full object-contain"
+        style={isOverlayMode ? { opacity: baseOpacity / 100 } : undefined}
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+        }}
+      />
+      {/* 공종/리비전 관심 영역 폴리곤 (polygon 있을 때만) */}
+      {imageRect && polygon && naturalSize && (
+        <div
+          className="pointer-events-none"
+          style={{
+            position: 'absolute',
+            left: imageRect.left,
+            top: imageRect.top,
+            width: imageRect.width,
+            height: imageRect.height,
           }}
-        />
-        {/* 공종/리비전 관심 영역 폴리곤 (polygon 있을 때만) */}
-        {imageRect && polygon && naturalSize && (
+        >
+          <PolygonOverlay
+            polygon={polygon}
+            naturalWidth={naturalSize.w}
+            naturalHeight={naturalSize.h}
+          />
+        </div>
+      )}
+      {/* 공종 이미지 오버레이 (비교 모드) — 시각만, 클릭은 통과 */}
+      {isOverlayMode && imageRect && naturalSize && (
+        <>
           <div
             className="pointer-events-none"
             style={{
@@ -94,51 +98,24 @@ export function DrawingCanvas() {
               height: imageRect.height,
             }}
           >
-            <PolygonOverlay
-              polygon={polygon}
-              naturalWidth={naturalSize.w}
-              naturalHeight={naturalSize.h}
-            />
+            <ImageOverlay renderScale={renderScale} />
+            <RegionOverlay renderScale={renderScale} mode="visual" />
           </div>
-        )}
-        {/* 공종 이미지 오버레이 (비교 모드) — 시각만, 클릭은 통과 */}
-        {isOverlayMode && imageRect && naturalSize && (
-          <>
-            <div
-              className="pointer-events-none"
-              style={{
-                position: 'absolute',
-                left: imageRect.left,
-                top: imageRect.top,
-                width: imageRect.width,
-                height: imageRect.height,
-              }}
-            >
-              <ImageOverlay renderScale={renderScale} />
-              <RegionOverlay renderScale={renderScale} mode="visual" />
-            </div>
-            {/* Region 드래그 핸들 전용 레이어 — 여기만 클릭/드래그 가능 */}
-            <div
-              className="pointer-events-auto"
-              style={{
-                position: 'absolute',
-                left: imageRect.left,
-                top: imageRect.top,
-                width: imageRect.width,
-                height: imageRect.height,
-              }}
-            >
-              <RegionOverlay renderScale={renderScale} mode="drag" />
-            </div>
-          </>
-        )}
-      </>
-    );
-  }
-
-  return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-gray-100">
-      {content}
+          {/* Region 드래그 핸들 전용 레이어 — 여기만 클릭/드래그 가능 */}
+          <div
+            className="pointer-events-auto"
+            style={{
+              position: 'absolute',
+              left: imageRect.left,
+              top: imageRect.top,
+              width: imageRect.width,
+              height: imageRect.height,
+            }}
+          >
+            <RegionOverlay renderScale={renderScale} mode="drag" />
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,16 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import { useMemo } from 'react';
+import metadataJson from '../data/metadata.json';
 import type { Metadata, Drawing, Discipline, Revision } from '../types/drawing';
 
-type MetadataState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'success'; data: Metadata };
+const data = metadataJson as unknown as Metadata;
 
 // 자식 도면 목록: drawingId → children[]  (전체 배치도에서 동 목록 렌더링에 사용)
-function buildChildrenMap(data: Metadata): Record<string, Drawing[]> {
+function buildChildrenMap(metadata: Metadata): Record<string, Drawing[]> {
   const map: Record<string, Drawing[]> = {};
-  Object.values(data.drawings).forEach((d) => {
+  Object.values(metadata.drawings).forEach((d) => {
     if (d.parent) {
       map[d.parent] = map[d.parent] ?? [];
       map[d.parent].push(d);
@@ -43,25 +40,14 @@ function hasRecentChange(discipline: Discipline): boolean {
   return (latestRevision?.changes.length ?? 0) > 0;
 }
 
+const childrenMapCache = buildChildrenMap(data);
+
 export function useMetadata() {
-  const [state, setState] = useState<MetadataState>({ status: 'loading' });
-
-  useEffect(() => {
-    axios
-      .get<Metadata>('/data/metadata.json')
-      .then((res) => setState({ status: 'success', data: res.data }))
-      .catch((err: unknown) =>
-        setState({ status: 'error', message: String(err) })
-      );
-  }, []);
-
-  const childrenMap = useMemo(() => {
-    if (state.status !== 'success') return {};
-    return buildChildrenMap(state.data);
-  }, [state]);
+  // childrenMap은 데이터가 정적이므로 모듈 초기화 시 1회만 계산
+  const childrenMap = useMemo(() => childrenMapCache, []);
 
   return {
-    state,
+    data,
     childrenMap,
     getLatestRevision,
     hasRecentChange,

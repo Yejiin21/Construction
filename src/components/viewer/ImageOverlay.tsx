@@ -7,11 +7,11 @@ type Props = {
 
 export function ImageOverlay({ renderScale }: Props) {
   const { selectedDrawingId, overlayDisciplines } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
-  if (state.status !== 'success' || overlayDisciplines.length === 0) return null;
+  if (overlayDisciplines.length === 0) return null;
 
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   if (!drawing) return null;
 
   // region 있는 공종(구조 Region A/B)은 RegionOverlay에서 처리

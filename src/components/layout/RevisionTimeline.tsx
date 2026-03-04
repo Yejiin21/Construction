@@ -11,12 +11,10 @@ export function RevisionTimeline() {
     selectedRevision,
     selectRevision,
   } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
   const [hoveredVersion, setHoveredVersion] = useState<string | null>(null);
 
-  if (state.status !== 'success') return null;
-
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   const discipline = drawing?.disciplines?.[selectedDiscipline ?? ''];
   if (!discipline) return null;
 

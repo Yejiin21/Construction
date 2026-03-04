@@ -28,11 +28,11 @@ export function OverlayControlBar() {
     setBaseOpacity,
     exitOverlayMode,
   } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
-  if (!isOverlayMode || state.status !== "success") return null;
+  if (!isOverlayMode) return null;
 
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   const disciplines = drawing?.disciplines ?? {};
 
   // 오버레이 옵션 목록: region 있으면 Region A/B 각각, 없으면 공종 하나

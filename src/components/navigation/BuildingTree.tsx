@@ -12,19 +12,10 @@ export function BuildingTree() {
     selectRegion,
     selectRevision,
   } = useDrawingStore();
-  const { state, childrenMap, getLatestRevision, hasRecentChange } = useMetadata();
+  const { data, childrenMap, getLatestRevision, hasRecentChange } = useMetadata();
 
   // 펼쳐진 동 — 로컬 UI 상태 (한 번에 하나만)
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  if (state.status === 'loading') {
-    return <div className="p-4 text-sm text-gray-400">불러오는 중...</div>;
-  }
-  if (state.status === 'error') {
-    return <div className="p-4 text-sm text-red-400">데이터 오류: {state.message}</div>;
-  }
-
-  const { data } = state;
   const buildings = childrenMap['00'] ?? [];
 
   function handleBuildingClick(id: string) {

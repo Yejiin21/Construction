@@ -23,7 +23,7 @@ type DragStart = {
 export function RegionOverlay({ renderScale, mode = 'visual' }: RegionOverlayProps) {
   const { selectedDrawingId, overlayDisciplines, updateOverlayCalibration } =
     useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<DragStart | null>(null);
@@ -56,9 +56,7 @@ export function RegionOverlay({ renderScale, mode = 'visual' }: RegionOverlayPro
     };
   }, [draggingKey, handleMouseMove, handleMouseUp]);
 
-  if (state.status !== 'success') return null;
-
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   if (!drawing) return null;
 
   const regionOverlays = overlayDisciplines.filter((o) => o.region != null);

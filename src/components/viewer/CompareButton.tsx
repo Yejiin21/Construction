@@ -4,11 +4,11 @@ import { getBaseDisciplineForDrawing } from '../../utils/resolveCurrentView';
 
 export function CompareButton() {
   const { selectedDrawingId, selectedDiscipline, isOverlayMode, enterOverlayMode } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
-  if (isOverlayMode || !selectedDiscipline || state.status !== 'success') return null;
+  if (isOverlayMode || !selectedDiscipline) return null;
 
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   if (!drawing?.disciplines) return null;
 
   const baseDiscipline = getBaseDisciplineForDrawing(drawing);

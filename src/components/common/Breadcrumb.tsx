@@ -3,11 +3,9 @@ import { useMetadata } from '../../hooks/useMetadata';
 
 export function Breadcrumb() {
   const { selectedDrawingId, selectedDiscipline, selectedRegion, selectedRevision } = useDrawingStore();
-  const { state } = useMetadata();
+  const { data } = useMetadata();
 
-  if (state.status !== 'success') return null;
-
-  const drawing = state.data.drawings[selectedDrawingId];
+  const drawing = data.drawings[selectedDrawingId];
   if (!drawing) return null;
 
   const parts: string[] = [drawing.name];
