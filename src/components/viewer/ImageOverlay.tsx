@@ -30,7 +30,7 @@ export function ImageOverlay({ renderScale }: Props) {
           : discipline.image;
         if (!revImage) return null;
 
-        const { x, y, scale, rotation } = discipline.imageTransform;
+        const { x, y, rotation } = discipline.imageTransform;
 
         return (
           <img
@@ -44,7 +44,7 @@ export function ImageOverlay({ renderScale }: Props) {
               width: '100%',
               height: '100%',
               transformOrigin: `${x * renderScale}px ${y * renderScale}px`,
-              transform: `rotate(${rotation}rad) scale(${scale})`,
+              transform: `rotate(${rotation}rad)`,
               mixBlendMode: 'multiply',
               opacity: opacity / 100,
             }}
